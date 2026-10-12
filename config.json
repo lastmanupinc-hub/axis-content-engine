@@ -1,0 +1,34 @@
+{
+  "pillars": [
+    {
+      "name": "Sovereign / Deterministic AI Systems",
+      "keywords": ["deterministic AI", "sovereign AI", "reproducible AI"],
+      "angle": "Architecture and risk for high-stakes systems"
+    },
+    {
+      "name": "Engine-Ready 3D Generation",
+      "keywords": ["AI 3D model", "prompt to mesh", "Unity Unreal export"],
+      "angle": "Validated engine-ready meshes with provenance"
+    },
+    {
+      "name": "AI Tool Directories & Launch",
+      "keywords": ["AI app directory", "list AI tools"],
+      "angle": "Discovery and verifiable proof"
+    },
+    {
+      "name": "Practical AI for Builders",
+      "keywords": ["AI web apps", "prompt systems"],
+      "angle": "Hands-on systems that ship"
+    }
+  ],
+  "topics": [
+    "How to build reproducible 3D assets that export cleanly to Unity and Unreal",
+    "Deterministic AI pipelines vs probabilistic generation",
+    "What engine-ready actually means for AI-generated 3D meshes",
+    "Provenance and hash-verified assets in game workflows",
+    "Common failure modes when generating 3D characters for real engines",
+    "Self-hosted vs hosted AI 3D generation trade-offs",
+    "From prompt to production: validation rules that catch bad meshes early",
+    "Practical architecture patterns for sovereign AI tools"
+  ]
+}

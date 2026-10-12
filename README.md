@@ -1,27 +1,26 @@
 # AXIS Content Engine
 
-Automated content calendar and outline generator for professional visibility around AI systems, engine-ready 3D generation, and related builder work.
+Generate consistent professional content calendars and outlines for AI systems, engine-ready 3D generation, and related builder topics.
 
 ## What it does
 
-- Generates multi-week content calendars focused on searchable professional topics.
-- Produces detailed outlines.
-- Lists legitimate external mention / backlink opportunities.
-- Provides a GitHub Pages frontend where you can input social handles and generate plans.
-- Includes a GitHub Action that can run on a schedule to regenerate calendars.
+- Multi-week content calendars focused on searchable professional topics
+- Detailed outlines with structure and draft starters
+- Legitimate external mention / backlink opportunity lists
+- GitHub Pages frontend (handles stored only in your browser)
+- Optional scheduled GitHub Action that regenerates the calendar weekly
 
 ## Realistic limits
 
-This system helps with consistent, high-quality professional content and external signals. It does **not** remove or suppress public court records or news coverage. Rankings for name queries against high-authority sources (government, major news) change slowly, if at all, and require sustained quality plus real external mentions.
+This system helps with consistent, high-quality professional content and external signals. It does **not** remove or suppress public court records or news coverage. Rankings for name queries against high-authority sources change slowly (if at all) and require sustained quality plus real external mentions.
 
-Full auto-posting to Instagram, LinkedIn, or TikTok requires their official APIs, business accounts, app reviews, and compliance with their terms. The system generates drafts and calendars you can review and publish. Browser automation for posting is fragile and often violates platform rules.
+Full auto-posting to Instagram, LinkedIn, or TikTok requires official APIs, business accounts, app reviews, and compliance with platform terms. The system generates drafts you review and publish. Browser automation for posting is fragile and often violates rules.
 
 ## Quick start
 
-1. Enable GitHub Pages on the `main` branch (or `/docs` if preferred) from the repo Settings.
-2. Open the published site and enter your Instagram, LinkedIn, and TikTok handles.
-3. Generate calendars and outlines.
-4. Optionally enable the scheduled workflow in `.github/workflows/generate.yml`.
+1. In repo Settings → Pages, set source to Deploy from branch `main` / root.
+2. Open the published site, enter Instagram / LinkedIn / TikTok handles, and generate calendars or outlines.
+3. Download or copy results. Enable the Action under the Actions tab if you want weekly regeneration.
 
 ## Local use
 
@@ -31,8 +30,14 @@ python content_engine.py --outline "validation rules for AI 3D meshes"
 python content_engine.py --backlinks
 ```
 
-Outputs go to `output/`.
+Outputs go to `output/`. Optional `config.json` can override pillars and topics.
 
-## Social input
+## Security / privacy
 
-The Pages frontend stores your handles locally in the browser (localStorage) so generated posts can reference them in bios or CTAs. No data is sent anywhere.
+- Social handles are stored only in localStorage on the frontend. Nothing is sent to a server.
+- The Action uses the default `GITHUB_TOKEN` with contents:write only for committing generated files.
+- Review generated content before publishing.
+
+## License
+
+MIT

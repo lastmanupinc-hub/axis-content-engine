@@ -2,69 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AXIS Content Engine</title>
 <style>
-body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-.card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin: 1rem 0; background: #fafafa; }
-button { background: #111; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-input, textarea { width: 100%; padding: 0.5rem; margin: 0.25rem 0; box-sizing: border-box; }
-.note { background: #fff3cd; padding: 0.75rem; border-radius: 4px; }
+:root { --bg: #0f1115; --card: #1a1d24; --text: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8; --border: #2d3139; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 960px; margin: 0 auto; padding: 1.5rem; line-height: 1.55; }
+h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+.subtitle { color: var(--muted); margin-top: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin: 1rem 0; }
+button { background: var(--accent); color: #0f1115; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 0.25rem 0.25rem 0.25rem 0; }
+button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+input, textarea { width: 100%; padding: 0.6rem; margin: 0.3rem 0; border-radius: 6px; border: 1px solid var(--border); background: #12151a; color: var(--text); box-sizing: border-box; font-family: inherit; }
+.note { background: #2a2416; border-left: 3px solid #f9ab00; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.95rem; }
+pre { background: #12151a; padding: 1rem; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+label { display: block; margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted); }
+.row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+@media (max-width: 600px) { body { padding: 1rem; } }
 </style>
 </head>
 <body>
 <h1>AXIS Content Engine</h1>
-<p>Generate consistent professional content calendars and outlines. Enter social handles so CTAs and bios can reference them.</p>
-<div class="note"><strong>Note:</strong> This generates drafts and plans. It does not auto-post to social platforms or suppress public records. Review everything before publishing.</div>
-<div class="card">
-<h2>Social handles (stored locally)</h2>
-<label>Instagram <input id="ig" placeholder="@username"></label>
-<label>LinkedIn <input id="li" placeholder="linkedin.com/in/username"></label>
-<label>TikTok <input id="tt" placeholder="@username"></label>
-<button onclick="saveHandles()">Save handles</button>
+<p class="subtitle">Generate consistent professional content calendars and outlines. Handles stay in your browser only.</p>
+
+<div class="note">
+  <strong>Limits:</strong> Produces drafts and plans. Does not auto-post to social platforms and does not suppress public records or news coverage. Review everything before publishing. Quality and real external signals matter more than volume.
 </div>
+
 <div class="card">
-<h2>Generate calendar</h2>
-<button onclick="genCal()">8-week calendar</button>
-<pre id="cal"></pre>
+  <h2>Social handles <span style="font-weight:400;color:var(--muted);font-size:0.9rem;">(localStorage only)</span></h2>
+  <label>Instagram<input id="ig" placeholder="@username"></label>
+  <label>LinkedIn<input id="li" placeholder="linkedin.com/in/username or full URL"></label>
+  <label>TikTok<input id="tt" placeholder="@username"></label>
+  <div class="row">
+    <button onclick="saveHandles()">Save handles</button>
+    <button class="secondary" onclick="clearHandles()">Clear</button>
+  </div>
 </div>
+
 <div class="card">
-<h2>Outline</h2>
-<input id="topic" placeholder="Topic">
-<button onclick="genOutline()">Generate</button>
-<textarea id="out" rows="12"></textarea>
+  <h2>Content calendar</h2>
+  <div class="row">
+    <button onclick="genCal(8)">8 weeks</button>
+    <button onclick="genCal(12)">12 weeks</button>
+    <button class="secondary" onclick="downloadCal()">Download Markdown</button>
+    <button class="secondary" onclick="copyCal()">Copy</button>
+  </div>
+  <pre id="cal">Click a button to generate.</pre>
 </div>
+
+<div class="card">
+  <h2>Outline generator</h2>
+  <label>Topic<input id="topic" placeholder="e.g. validation rules for AI 3D meshes"></label>
+  <div class="row">
+    <button onclick="genOutline()">Generate outline</button>
+    <button class="secondary" onclick="copyOutline()">Copy</button>
+  </div>
+  <textarea id="out" rows="16"></textarea>
+</div>
+
 <script>
-const pillars = ["Sovereign / Deterministic AI", "Engine-Ready 3D", "AI Tool Directories", "Practical AI for Builders"];
-const topics = ["Reproducible 3D assets for Unity and Unreal", "Deterministic vs probabilistic AI pipelines", "What engine-ready means for AI meshes", "Provenance and hash-verified assets", "Validation rules that catch bad meshes", "Self-hosted vs hosted 3D generation", "Architecture patterns for sovereign AI tools"];
+const pillars = ["Sovereign / Deterministic AI Systems", "Engine-Ready 3D Generation", "AI Tool Directories & Launch", "Practical AI for Builders"];
+const topics = [
+  "How to build reproducible 3D assets that export cleanly to Unity and Unreal",
+  "Deterministic AI pipelines vs probabilistic generation",
+  "What engine-ready actually means for AI-generated 3D meshes",
+  "Provenance and hash-verified assets in game workflows",
+  "Common failure modes when generating 3D characters for real engines",
+  "Self-hosted vs hosted AI 3D generation trade-offs",
+  "From prompt to production: validation rules that catch bad meshes early",
+  "Practical architecture patterns for sovereign AI tools",
+  "Listing and verifying AI apps for acquisition readiness",
+  "Newsletter systems that compound for technical founders"
+];
+
 function saveHandles() {
-  localStorage.setItem("handles", JSON.stringify({ig: document.getElementById("ig").value, li: document.getElementById("li").value, tt: document.getElementById("tt").value}));
-  alert("Saved locally");
+  const data = { ig: document.getElementById("ig").value.trim(), li: document.getElementById("li").value.trim(), tt: document.getElementById("tt").value.trim() };
+  localStorage.setItem("axis_handles", JSON.stringify(data));
+  alert("Saved locally in this browser.");
+}
+function clearHandles() {
+  localStorage.removeItem("axis_handles");
+  ["ig","li","tt"].forEach(id => document.getElementById(id).value = "");
 }
 function loadHandles() {
-  const h = JSON.parse(localStorage.getItem("handles") || "{}");
-  if (h.ig) document.getElementById("ig").value = h.ig;
-  if (h.li) document.getElementById("li").value = h.li;
-  if (h.tt) document.getElementById("tt").value = h.tt;
+  try {
+    const h = JSON.parse(localStorage.getItem("axis_handles") || "{}");
+    if (h.ig) document.getElementById("ig").value = h.ig;
+    if (h.li) document.getElementById("li").value = h.li;
+    if (h.tt) document.getElementById("tt").value = h.tt;
+  } catch (e) {}
 }
-function genCal() {
+function getHandles() {
+  try { return JSON.parse(localStorage.getItem("axis_handles") || "{}"); } catch { return {}; }
+}
+
+function genCal(weeks) {
   const start = new Date();
   let txt = "";
-  for (let w = 0; w < 8; w++) {
+  for (let w = 0; w < weeks; w++) {
     for (let i = 0; i < 2; i++) {
-      const d = new Date(start); d.setDate(start.getDate() + w*7 + i*3);
-      const topic = topics[(w*2+i)%topics.length];
-      const pillar = pillars[(w+i)%pillars.length];
-      txt += d.toISOString().slice(0,10) + " | " + (i===0?"Long-form":"Supporting") + " | " + pillar + "\n  " + topic + "\n\n";
+      const d = new Date(start);
+      d.setDate(start.getDate() + w * 7 + i * 3);
+      const topic = topics[(w * 2 + i) % topics.length];
+      const pillar = pillars[(w + i) % pillars.length];
+      const fmt = i === 0 ? "Long-form guide" : "Supporting post";
+      txt += `${d.toISOString().slice(0,10)} | ${fmt} | ${pillar}\n  → ${topic}\n\n`;
     }
   }
-  document.getElementById("cal").textContent = txt;
+  document.getElementById("cal").textContent = txt || "No items.";
+  window._lastCal = txt;
 }
+function downloadCal() {
+  const content = document.getElementById("cal").textContent;
+  if (!content || content.includes("Click")) return alert("Generate a calendar first.");
+  const blob = new Blob([content], { type: "text/markdown" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "content-calendar.md";
+  a.click();
+}
+function copyCal() {
+  const t = document.getElementById("cal").textContent;
+  if (t) navigator.clipboard.writeText(t).then(() => alert("Copied"));
+}
+
 function genOutline() {
-  const t = document.getElementById("topic").value || "Engine-ready AI 3D assets";
-  const h = JSON.parse(localStorage.getItem("handles") || "{}");
-  const bio = [h.ig, h.li, h.tt].filter(Boolean).join(" | ");
-  document.getElementById("out").value = "# Outline: " + t + "\n\n1. Hook / problem\n2. Core method\n3. Implementation\n4. Results\n5. CTA\n\nAuthor bio suggestion: " + (bio || "Add handles above") + "\nLink to jonathanarvay.com and AXIS sites.";
+  const topic = document.getElementById("topic").value.trim() || "Engine-ready AI 3D assets";
+  const h = getHandles();
+  const bio = [h.ig, h.li, h.tt].filter(Boolean).join(" | ") || "Add handles above for bio suggestion";
+  const outline = `# Outline: ${topic}
+
+## Working titles
+- ${topic}
+- Practical guide: ${topic}
+
+## Structure
+1. Hook / Problem — specific pain point the reader has now
+2. Core method or framework — clear steps with examples
+3. Implementation details — process and common mistakes
+4. Results / what good looks like
+5. Next actions + CTA
+
+## Notes
+- Primary keyword in title and early in the piece.
+- Internal links to related content and product pages.
+- Author bio: ${bio}
+- Link to jonathanarvay.com and AXIS properties.
+- Distribute useful versions in relevant communities (value first).
+
+## Draft starter
+Most teams hit the same wall with ${topic.toLowerCase()}. Output that looks fine in preview often fails in a real engine or production pipeline. This piece covers a practical approach focused on validation, reproducibility, and clear ownership of the result.`;
+  document.getElementById("out").value = outline;
 }
+function copyOutline() {
+  const t = document.getElementById("out").value;
+  if (t) navigator.clipboard.writeText(t).then(() => alert("Copied"));
+}
+
 loadHandles();
 </script>
 </body>
