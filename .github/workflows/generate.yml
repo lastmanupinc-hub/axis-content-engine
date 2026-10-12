@@ -20,8 +20,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Generate calendar
-        run: python content_engine.py --calendar --weeks 8
+      - name: Syntax check
+        run: python -m py_compile content_engine.py
+
+      - name: Generate all
+        run: python content_engine.py --all --weeks 8
 
       - name: Commit and push if changed
         run: |
@@ -31,6 +34,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: auto-generate content calendar [skip ci]"
+            DATE=$(date -u +%Y-%m-%d)
+            git commit -m "chore: auto-generate content ($DATE) [skip ci]"
             git push
           fi

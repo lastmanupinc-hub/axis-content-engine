@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import json
+import sys
 import textwrap
 from pathlib import Path
 
@@ -59,12 +60,16 @@ def load_config():
     cfg_path = Path("config.json")
     if cfg_path.exists():
         try:
-            return json.loads(cfg_path.read_text())
-        except Exception:
-            pass
+            data = json.loads(cfg_path.read_text())
+            if isinstance(data, dict):
+                return data
+        except Exception as e:
+            print(f"Warning: could not load config.json ({e}), using defaults", file=sys.stderr)
     return {"pillars": DEFAULT_PILLARS, "topics": DEFAULT_TOPICS}
 
 def generate_calendar(start_date: datetime.date, weeks: int = 8, pillars=None, topics=None):
+    if weeks < 1 or weeks > 52:
+        raise ValueError("weeks must be between 1 and 52")
     pillars = pillars or DEFAULT_PILLARS
     topics = topics or DEFAULT_TOPICS
     items = []
@@ -120,6 +125,12 @@ def generate_outline(topic: str, handles: dict | None = None) -> str:
     Most teams hit the same wall when trying to {topic.lower()}. The usual path produces output that looks fine in a preview but breaks in a real engine or production pipeline. This piece walks through a practical approach that prioritizes validation, reproducibility, and clear ownership of the result.
     """).strip()
 
+def write_csv(items, path):
+    lines = ["date,format,pillar,topic,keyword"]
+    for it in items:
+        lines.append(f"{it['date']},{it['format']},{it['pillar']},\"{it['topic']}\",{it['target_keyword']}")
+    path.write_text("\n".join(lines) + "\n")
+
 def main():
     parser = argparse.ArgumentParser(description="AXIS Content Engine")
     parser.add_argument("--calendar", action="store_true")
@@ -127,6 +138,7 @@ def main():
     parser.add_argument("--outline", type=str)
     parser.add_argument("--backlinks", action="store_true")
     parser.add_argument("--handles", type=str, help="JSON string of handles")
+    parser.add_argument("--all", action="store_true", help="Generate calendar, outline sample, and backlinks")
     args = parser.parse_args()
 
     cfg = load_config()
@@ -136,29 +148,40 @@ def main():
         try:
             handles = json.loads(args.handles)
         except Exception:
-            pass
+            print("Warning: invalid --handles JSON", file=sys.stderr)
 
-    if args.calendar:
-        cal = generate_calendar(start, args.weeks, cfg.get("pillars"), cfg.get("topics"))
-        (OUTPUT_DIR / "content_calendar.json").write_text(json.dumps(cal, indent=2))
-        md = ["# Content Calendar\n"]
+    generated = False
+
+    if args.calendar or args.all:
+        try:
+            cal = generate_calendar(start, args.weeks, cfg.get("pillars"), cfg.get("topics"))
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        (OUTPUT_DIR / "content_calendar.json").write_text(json.dumps({"generated": start.isoformat(), "items": cal}, indent=2))
+        md = [f"# Content Calendar (generated {start.isoformat()})\n"]
         for item in cal:
             md.append(f"- **{item['date']}** | {item['format']} | {item['pillar']}\n  Topic: {item['topic']}\n  Keyword: {item['target_keyword']}\n")
         (OUTPUT_DIR / "content_calendar.md").write_text("\n".join(md))
-        print(f"Wrote {len(cal)} calendar items")
+        write_csv(cal, OUTPUT_DIR / "content_calendar.csv")
+        print(f"Wrote {len(cal)} calendar items (json/md/csv)")
+        generated = True
 
-    if args.outline:
-        (OUTPUT_DIR / "outline.md").write_text(generate_outline(args.outline, handles))
+    if args.outline or args.all:
+        topic = args.outline or "Engine-ready AI 3D assets"
+        (OUTPUT_DIR / "outline.md").write_text(generate_outline(topic, handles))
         print("Wrote outline.md")
+        generated = True
 
-    if args.backlinks:
-        lines = ["# Legitimate external mention opportunities\n", "Prioritize real value over volume.\n"]
+    if args.backlinks or args.all:
+        lines = [f"# Legitimate external mention opportunities\nGenerated {start.isoformat()}\n", "Prioritize real value over volume.\n"]
         for o in BACKLINKS:
             lines.append(f"## {o['target']} ({o['priority']})\n- {o['action']}\n")
         (OUTPUT_DIR / "backlinks.md").write_text("\n".join(lines))
         print("Wrote backlinks.md")
+        generated = True
 
-    if not any([args.calendar, args.outline, args.backlinks]):
+    if not generated:
         parser.print_help()
 
 if __name__ == "__main__":

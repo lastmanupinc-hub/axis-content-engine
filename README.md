@@ -4,11 +4,11 @@ Generate consistent professional content calendars and outlines for AI systems, 
 
 ## What it does
 
-- Multi-week content calendars focused on searchable professional topics
+- Multi-week content calendars (Markdown, JSON, CSV)
 - Detailed outlines with structure and draft starters
 - Legitimate external mention / backlink opportunity lists
 - GitHub Pages frontend (handles stored only in your browser)
-- Optional scheduled GitHub Action that regenerates the calendar weekly
+- Optional scheduled GitHub Action that regenerates everything weekly
 
 ## Realistic limits
 
@@ -28,6 +28,7 @@ Full auto-posting to Instagram, LinkedIn, or TikTok requires official APIs, busi
 python content_engine.py --calendar --weeks 12
 python content_engine.py --outline "validation rules for AI 3D meshes"
 python content_engine.py --backlinks
+python content_engine.py --all --weeks 8
 ```
 
 Outputs go to `output/`. Optional `config.json` can override pillars and topics.

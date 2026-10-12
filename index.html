@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AXIS Content Engine</title>
 <style>
-:root { --bg: #0f1115; --card: #1a1d24; --text: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8; --border: #2d3139; }
+:root { --bg: #0f1115; --card: #1a1d24; --text: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8; --border: #2d3139; --ok: #81c995; }
 body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 960px; margin: 0 auto; padding: 1.5rem; line-height: 1.55; }
 h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .subtitle { color: var(--muted); margin-top: 0; }
@@ -17,6 +17,7 @@ input, textarea { width: 100%; padding: 0.6rem; margin: 0.3rem 0; border-radius:
 pre { background: #12151a; padding: 1rem; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
 label { display: block; margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted); }
 .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.status { font-size: 0.85rem; color: var(--ok); margin-left: 0.5rem; }
 @media (max-width: 600px) { body { padding: 1rem; } }
 </style>
 </head>
@@ -29,10 +30,10 @@ label { display: block; margin-top: 0.75rem; font-size: 0.9rem; color: var(--mut
 </div>
 
 <div class="card">
-  <h2>Social handles <span style="font-weight:400;color:var(--muted);font-size:0.9rem;">(localStorage only)</span></h2>
-  <label>Instagram<input id="ig" placeholder="@username"></label>
-  <label>LinkedIn<input id="li" placeholder="linkedin.com/in/username or full URL"></label>
-  <label>TikTok<input id="tt" placeholder="@username"></label>
+  <h2>Social handles <span class="status" id="handleStatus"></span></h2>
+  <label>Instagram<input id="ig" placeholder="@username" aria-label="Instagram handle"></label>
+  <label>LinkedIn<input id="li" placeholder="linkedin.com/in/username or full URL" aria-label="LinkedIn"></label>
+  <label>TikTok<input id="tt" placeholder="@username" aria-label="TikTok handle"></label>
   <div class="row">
     <button onclick="saveHandles()">Save handles</button>
     <button class="secondary" onclick="clearHandles()">Clear</button>
@@ -52,12 +53,12 @@ label { display: block; margin-top: 0.75rem; font-size: 0.9rem; color: var(--mut
 
 <div class="card">
   <h2>Outline generator</h2>
-  <label>Topic<input id="topic" placeholder="e.g. validation rules for AI 3D meshes"></label>
+  <label>Topic<input id="topic" placeholder="e.g. validation rules for AI 3D meshes" aria-label="Topic"></label>
   <div class="row">
     <button onclick="genOutline()">Generate outline</button>
     <button class="secondary" onclick="copyOutline()">Copy</button>
   </div>
-  <textarea id="out" rows="16"></textarea>
+  <textarea id="out" rows="16" aria-label="Generated outline"></textarea>
 </div>
 
 <script>
@@ -75,14 +76,21 @@ const topics = [
   "Newsletter systems that compound for technical founders"
 ];
 
+function updateStatus() {
+  const h = getHandles();
+  const count = [h.ig, h.li, h.tt].filter(Boolean).length;
+  document.getElementById("handleStatus").textContent = count ? `(${count} saved)` : "";
+}
 function saveHandles() {
   const data = { ig: document.getElementById("ig").value.trim(), li: document.getElementById("li").value.trim(), tt: document.getElementById("tt").value.trim() };
   localStorage.setItem("axis_handles", JSON.stringify(data));
+  updateStatus();
   alert("Saved locally in this browser.");
 }
 function clearHandles() {
   localStorage.removeItem("axis_handles");
   ["ig","li","tt"].forEach(id => document.getElementById(id).value = "");
+  updateStatus();
 }
 function loadHandles() {
   try {
@@ -91,6 +99,7 @@ function loadHandles() {
     if (h.li) document.getElementById("li").value = h.li;
     if (h.tt) document.getElementById("tt").value = h.tt;
   } catch (e) {}
+  updateStatus();
 }
 function getHandles() {
   try { return JSON.parse(localStorage.getItem("axis_handles") || "{}"); } catch { return {}; }
@@ -98,7 +107,7 @@ function getHandles() {
 
 function genCal(weeks) {
   const start = new Date();
-  let txt = "";
+  let txt = `# Content Calendar (generated ${start.toISOString().slice(0,10)})\n\n`;
   for (let w = 0; w < weeks; w++) {
     for (let i = 0; i < 2; i++) {
       const d = new Date(start);
@@ -106,10 +115,10 @@ function genCal(weeks) {
       const topic = topics[(w * 2 + i) % topics.length];
       const pillar = pillars[(w + i) % pillars.length];
       const fmt = i === 0 ? "Long-form guide" : "Supporting post";
-      txt += `${d.toISOString().slice(0,10)} | ${fmt} | ${pillar}\n  → ${topic}\n\n`;
+      txt += `- **${d.toISOString().slice(0,10)}** | ${fmt} | ${pillar}\n  Topic: ${topic}\n\n`;
     }
   }
-  document.getElementById("cal").textContent = txt || "No items.";
+  document.getElementById("cal").textContent = txt;
   window._lastCal = txt;
 }
 function downloadCal() {
@@ -123,7 +132,7 @@ function downloadCal() {
 }
 function copyCal() {
   const t = document.getElementById("cal").textContent;
-  if (t) navigator.clipboard.writeText(t).then(() => alert("Copied"));
+  if (t && !t.includes("Click")) navigator.clipboard.writeText(t).then(() => alert("Copied"));
 }
 
 function genOutline() {
